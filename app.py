@@ -88,6 +88,7 @@ def register_for_competition(competition_id):
         return jsonify({"Message": "Competition not found. Please check the competition ID"}), 404
 
     registration = Registration()
+
     tries = registration.count_tries_in_competition(competition_id, payload['atleta'])
 
     if competition_data[0]['modality'] == modalities["2"] and tries > tries_limit - 1:
