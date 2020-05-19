@@ -22,7 +22,7 @@ class Registration:
         return public_id
 
     def get_registrations(self, competition_id: str, registration_id: str) -> dict:
-        query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition_id and registrations_table.columns.registration_id == registration_id)
+        query = db.select([registrations_table]).where(db.and_(registrations_table.columns.competition_id == competition_id, registrations_table.columns.public_id == registration_id))
         results = connection.execute(query)
         return self.__to_json(results)
 
@@ -31,8 +31,8 @@ class Registration:
         results = connection.execute(query)
         return self.__to_json(results)
 
-    def count_tries_in_competition(self, competition_id: str, athtlete: str) -> dict:
-        query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition_id and registrations_table.columns.athtlete == athtlete)
+    def count_tries_in_competition(self, competition_id: str, athlete: str) -> dict:
+        query = db.select([registrations_table]).where(db.and_(registrations_table.columns.competition_id == competition_id, registrations_table.columns.athlete == athlete))
         results = connection.execute(query)
         tries = self.__to_json(results)
         return len(tries)
@@ -42,8 +42,13 @@ class Registration:
         results = connection.execute(query)
         return self.__to_json(results)
 
+    def get_ranking(self, competition_id: str) -> dict:
+        query = db.select([db.func.max(registrations_table.columns.value).label('best_result'), registrations_table]).where(registrations_table.columns.competition_id == competition_id).group_by(registrations_table.columns.athlete)
+        results = connection.execute(query)
+        return self.__to_json(results)
+
     def get_competition_results(self, competition_id):
-        results = self.list_registers_by_competition_id(competition_id)
+        results = self.get_ranking(competition_id)
 
         competition = Competition()
         competition_data = competition.get_competition_by_public_id(competition_id)
@@ -61,7 +66,7 @@ class Registration:
                 "athlete": result['athlete'],
                 "position": f"{i}º lugar",
                 "result": f"{round(result['value'], 2)}{result['unit']}",
-                "value": round(result['value'])
+                "value": round(result['value'], 2)
             })
             i = i + 1
 
