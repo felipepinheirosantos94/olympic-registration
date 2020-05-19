@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
             self.assertEqual(competition_data[0]['modality'], modalities[f"{payload['modality']}"])
             self.assertEqual(competition_data[0]['event_date'], payload['event_date'])
 
-        with self.subTest(f"[PUT] competition"):
+        with self.subTest(f"test update competition endpoint"):
             payload = {
                 "name": "Competição de testes 2 - Editado",
                 "modality": 2,
@@ -67,7 +67,7 @@ class Test(unittest.TestCase):
             self.assertEqual(competition_data[0]['event_date'], payload['event_date'])
             self.assertEqual(competition_data[0]['status'], payload['status'])
 
-        with self.subTest(f"[PUT] competition with BAD status"):
+        with self.subTest(f"test update competition endpoint with invalid status"):
             payload = {
                 "name": "Competição de testes 2 - Editado",
                 "modality": 2,
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
 
             self.assertEqual(response.status_code, 400)
 
-        with self.subTest(f"[GET] competition"):
+        with self.subTest(f"test get competition endpoint"):
 
             response = self.__perform_request(
                 f"competition/{self.competition_id}",
@@ -100,7 +100,7 @@ class Test(unittest.TestCase):
             self.assertTrue(competition_data['entry'][0]['event_date'])
             self.assertTrue(competition_data['entry'][0]['status'])
 
-        with self.subTest(f"[GET] competitions"):
+        with self.subTest(f"test get competitions list endpoint"):
 
             response = self.__perform_request(
                 "competitions",
@@ -118,9 +118,12 @@ class Test(unittest.TestCase):
             self.assertTrue(competition_data['entries'][0]['event_date'])
             self.assertTrue(competition_data['entries'][0]['status'])
 
-        with self.subTest(f"[POST] /competition/<competition_id>/register"):
+        with self.subTest(f"test endpoint to register in a competition"):
             print(f"Participação na competição")
+
+            # Create 3 participants
             for j in range(3):
+                # Try to register 4 tries for each participant
                 for i in range(4):
                     payload = {
                       "competicao": self.competition_id,
@@ -137,7 +140,7 @@ class Test(unittest.TestCase):
                     if i < 3:
                         content = response.get_json()
                         self.registration_id = content['registration_id']
-                        print(f"Competidor {j+1}:\nTentativa {i + i} registrada: ID {content['registration_id']}\n\n")
+                        print(f"Competidor {j+1}:\nTentativa registrada: ID {content['registration_id']}\n\n")
                         self.registrations.append(self.registration_id)
                         self.assertEqual(response.status_code, 201)
                         self.assertTrue(content['registration_id'])
@@ -184,12 +187,15 @@ class Test(unittest.TestCase):
             content = response.get_json()
 
             self.assertEqual(response.status_code, 200)
-            print("RANKING")
 
+            print("RANKING")
             for item in content['ranking']:
                 print(f"{item['position']} - {item['athlete']} - {item['result']}\n")
 
-
+            # Check ranking positions
+            self.assertTrue(
+                content['ranking'][0]['value'] >= content['ranking'][1]['value'] >= content['ranking'][2]['value']
+            )
 
     def __perform_request(self, endpoint, method, payload={}):
         return getattr(self.app, method)(

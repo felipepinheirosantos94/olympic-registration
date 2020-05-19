@@ -34,7 +34,7 @@ def update_competition(public_id):
         return jsonify({'Error': "Status must be 'Open', 'Running' or 'Closed'"}), 400
 
     competition = Competition()
-    competition_data = competition.get_competition_by_public_id(
+    competition.get_competition_by_public_id(
         public_id=public_id
     )
 
@@ -50,8 +50,6 @@ def update_competition(public_id):
 
 @app.route("/competition/<competition_id>", methods=["GET"])
 def show_competition(competition_id):
-    payload = request.get_json()
-
     competition = Competition()
 
     competition_data = competition.get_competition_by_public_id(
@@ -62,7 +60,6 @@ def show_competition(competition_id):
 
 @app.route("/competitions", methods=["GET"])
 def list_competitions():
-    payload = request.get_json()
     competition = Competition()
     competition_data = competition.get_competitions()
     return jsonify({'entries': competition_data}), 200
@@ -89,9 +86,11 @@ def register_for_competition(competition_id):
 
     registration = Registration()
 
+    # Check participant tries for this subscription
     tries = registration.count_tries_in_competition(competition_id, payload['atleta'])
 
     if competition_data[0]['modality'] == modalities["2"] and tries > tries_limit - 1:
+        # if tries limit exceeded do not register a new try on this competition
         return jsonify({"Message": f"For {modalities['2']} each person can try only {tries_limit} times"}), 400
 
     registration_data = registration.register_for_competition(
