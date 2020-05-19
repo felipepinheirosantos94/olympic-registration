@@ -34,7 +34,10 @@ $ flask run
 ```
 # Run tests
 
-Run
+Running the tests will create a competition and 3 participants.
+After this, these participants are registered them into the competition with random values.<br/>
+The last subtest show the ranking and compare the 3 participants values.<br/>
+All these proccess is printed on terminal to helps. :)
   ```sh
 $ python3 -m unittest discover tests
 ```
@@ -47,8 +50,36 @@ Check if API is running
 
 # Register Competition
 Register a competition. Example: Final 100m rasos sub-20
+### Modalidades
+"1" ="100m rasos"<br/>
+"2" = "Lançamento de Dardo"
   ```sh
 [POST] /competition
+
+{
+    "name": "Final sub-20",
+    "modality": "2",
+    "event_date": "19/05/2020"
+}
+```
+
+# Update a Competition
+Update a competition. Thought this endpoint the user can close a competition.
+
+### Status
+* "Open"
+* "Closed"
+* "Running"
+
+ ```sh
+[POST] /competition/<public_id>
+
+{
+    "name": "Final sub-20",
+    "modality": "2",
+    "event_date": "19/05/2020",
+    "status": "Closed"
+}
 ```
 
 # Add participation in a competition
@@ -56,6 +87,13 @@ Add a person and a result to a competition.
 For "Lançamento de Dardo" (modality 2), it's allowed only 3 tries per person.
   ```sh
 [POST] /competition/<competition_id>/register
+
+{
+    "athlete": "Felipe Pinheiro",
+    "value": "30.3"   
+}
+
+# The messure unit is defined by the competition modality
 ```
 
 # Get Ranking
