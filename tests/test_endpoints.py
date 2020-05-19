@@ -9,6 +9,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
         self.competition_id = ""
+        self.registrations = []
 
     def test_endpoints(self):
 
@@ -48,7 +49,7 @@ class Test(unittest.TestCase):
                 "name": "Competição de testes 2 - Editado",
                 "modality": 2,
                 "event_date": "22/02/2025",
-                "status": "Closed"
+                "status": "Open"
             }
 
             response = self.__perform_request(
@@ -59,6 +60,7 @@ class Test(unittest.TestCase):
 
             competition_data = self.__get_competition_data(self.competition_id)
 
+            print(f"Competição '{competition_data[0]['name']}' criada com sucesso.")
             self.assertEqual(response.status_code, 200)
             self.assertEqual(competition_data[0]['name'], payload['name'])
             self.assertEqual(competition_data[0]['modality'], modalities[f"{payload['modality']}"])
@@ -106,6 +108,7 @@ class Test(unittest.TestCase):
             )
 
             competition_data = response.get_json()
+            print(f"Evento: {competition_data['entries'][0]['modality']} ({competition_data['entries'][0]['name']})\nData: {competition_data['entries'][0]['event_date']}\n\n")
 
             self.assertEqual(response.status_code, 200)
             self.assertTrue(competition_data['entries'])
@@ -116,55 +119,59 @@ class Test(unittest.TestCase):
             self.assertTrue(competition_data['entries'][0]['status'])
 
         with self.subTest(f"[POST] /competition/<competition_id>/register"):
+            print(f"Participação na competição")
+            for j in range(3):
+                for i in range(4):
+                    payload = {
+                      "competicao": self.competition_id,
+                      "atleta": f"Competidor {j + 1}",
+                      "value": f"{random.uniform(0.1, 99.9)}"
+                    }
 
-            for i in range(4):
-                payload = {
-                  "competicao": self.competition_id,
-                  "atleta": "Joao das Neves",
-                  "value": f"{random.uniform(0.1, 99.9)}"
-                }
+                    response = self.__perform_request(
+                        f"competition/{self.competition_id}/register",
+                        "post",
+                        payload
+                    )
 
-                response = self.__perform_request(
-                    f"competition/{self.competition_id}/register",
-                    "post",
-                    payload
-                )
-
-                if i < 3:
-                    content = response.get_json()
-                    self.registration_id = content['registration_id']
-
-                    self.assertEqual(response.status_code, 201)
-                    self.assertTrue(content['registration_id'])
-                    self.assertTrue(len(content['registration_id']) > 0)
-                else:
-                    #Test for 3 tries limite exceeded
-                    self.assertEqual(response.status_code, 400)
+                    if i < 3:
+                        content = response.get_json()
+                        self.registration_id = content['registration_id']
+                        print(f"Competidor {j+1}:\nTentativa {i + i} registrada: ID {content['registration_id']}\n\n")
+                        self.registrations.append(self.registration_id)
+                        self.assertEqual(response.status_code, 201)
+                        self.assertTrue(content['registration_id'])
+                        self.assertTrue(len(content['registration_id']) > 0)
+                    else:
+                        #Test for 3 tries limite exceeded
+                        self.assertEqual(response.status_code, 400)
 
         with self.subTest(f"[GET] registrations"):
 
             response = self.__perform_request(
-                f"competition/{self.competition_id}",
+                f"competition/{self.competition_id}/registrations",
                 "get"
             )
 
             registration_data = response.get_json()
+
             self.assertEqual(response.status_code, 200)
-            self.assertTrue(registration_data['entry'])
-            self.assertTrue(len(registration_data['entry']) > 0)
+            self.assertTrue(registration_data['entries'])
+            self.assertTrue(len(registration_data['entries']) > 0)
 
         with self.subTest(f"[GET] registration"):
 
-            response = self.__perform_request(
-                f"competition/{self.competition_id}/{self.registration_id}",
-                "get"
-            )
+            for registration in self.registrations:
+                response = self.__perform_request(
+                    f"competition/{self.competition_id}/{registration}",
+                    "get"
+                )
 
-            registration_data = response.get_json()
-
-            self.assertEqual(response.status_code, 200)
-            self.assertTrue(registration_data['entry'])
-            self.assertTrue(len(registration_data['entry']) > 0)
+                registration_data = response.get_json()
+                print(f"Pessoa: {registration_data['entry'][0]['athlete']} \n Valor: {round(registration_data['entry'][0]['value'], 2)}\n\n")
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(registration_data['entry'])
+                self.assertTrue(len(registration_data['entry']) > 0)
 
         with self.subTest(f"GET ranking"):
 
@@ -177,9 +184,12 @@ class Test(unittest.TestCase):
             content = response.get_json()
 
             self.assertEqual(response.status_code, 200)
-            self.assertTrue(
-                content['ranking'][0]['value'] >= content['ranking'][1]['value'] >= content['ranking'][2]['value']
-            )
+            print("RANKING")
+
+            for item in content['ranking']:
+                print(f"{item['position']} - {item['athlete']} - {item['result']}\n")
+
+
 
     def __perform_request(self, endpoint, method, payload={}):
         return getattr(self.app, method)(
