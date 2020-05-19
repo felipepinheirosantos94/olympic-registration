@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
         with self.subTest(f"test /competition endpoint"):
             payload = {
                 "name": "Competição de testes 2",
-                "modality": 1,
+                "modality": 2,
                 "event_date": "20/02/2021"
             }
 
@@ -61,7 +61,7 @@ class Test(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(competition_data[0]['name'], payload['name'])
-            self.assertEqual(competition_data[0]['modality'], "Modalidade 2")
+            self.assertEqual(competition_data[0]['modality'], modalities[f"{payload['modality']}"])
             self.assertEqual(competition_data[0]['event_date'], payload['event_date'])
             self.assertEqual(competition_data[0]['status'], payload['status'])
 
@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
 
         with self.subTest(f"[POST] /competition/<competition_id>/register"):
 
-            for i in range(3):
+            for i in range(4):
                 payload = {
                   "competicao": self.competition_id,
                   "atleta": "Joao das Neves",
@@ -130,12 +130,41 @@ class Test(unittest.TestCase):
                     payload
                 )
 
-                content = response.get_json()
-                self.registration_id = content['registration_id']
+                if i < 3:
+                    content = response.get_json()
+                    self.registration_id = content['registration_id']
 
-                self.assertEqual(response.status_code, 201)
-                self.assertTrue(content['registration_id'])
-                self.assertTrue(len(content['registration_id']) > 0)
+                    self.assertEqual(response.status_code, 201)
+                    self.assertTrue(content['registration_id'])
+                    self.assertTrue(len(content['registration_id']) > 0)
+                else:
+                    #Test for 3 tries limite exceeded
+                    self.assertEqual(response.status_code, 400)
+
+        with self.subTest(f"[GET] registrations"):
+
+            response = self.__perform_request(
+                f"competition/{self.competition_id}",
+                "get"
+            )
+
+            registration_data = response.get_json()
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(registration_data['entry'])
+            self.assertTrue(len(registration_data['entry']) > 0)
+
+        with self.subTest(f"[GET] registration"):
+
+            response = self.__perform_request(
+                f"competition/{self.competition_id}/{self.registration_id}",
+                "get"
+            )
+
+            registration_data = response.get_json()
+
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(registration_data['entry'])
+            self.assertTrue(len(registration_data['entry']) > 0)
 
         with self.subTest(f"GET ranking"):
 

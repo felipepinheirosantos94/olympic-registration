@@ -34,8 +34,11 @@ def update_competition(public_id):
         return jsonify({'Error': "Status must be 'Open', 'Running' or 'Closed'"}), 400
 
     competition = Competition()
+    competition_data = competition.get_competition_by_public_id(
+        public_id=public_id
+    )
 
-    competition_data = competition.update_competition_by_public_id(
+    competition.update_competition_by_public_id(
         public_id=public_id,
         name=payload["name"],
         modality=payload["modality"],
@@ -79,11 +82,17 @@ def register_for_competition(competition_id):
         if competition_data[0]['modality'] == modalities["1"]:
             unit = "s"
         else:
+            tries_limit = 3
             unit = "m"
     else:
         return jsonify({"Message": "Competition not found. Please check the competition ID"}), 404
 
     registration = Registration()
+    tries = registration.count_tries_in_competition(competition_id, payload['atleta'])
+
+    if competition_data[0]['modality'] == modalities["2"] and tries > tries_limit - 1:
+        return jsonify({"Message": f"For {modalities['2']} each person can try only {tries_limit} times"}), 400
+
     registration_data = registration.register_for_competition(
         competition_id=competition_id,
         athlete=payload["atleta"],
@@ -99,6 +108,14 @@ def show_competition_registrations(competition_id):
 
     competition_data = registration.list_registers_by_competition_id(competition_id)
     return jsonify({'entries': competition_data}), 200
+
+
+@app.route("/competition/<competition_id>/<registration_id>", methods=["GET"])
+def get_registrations(competition_id, registration_id):
+    registration = Registration()
+
+    competition_data = registration.get_registrations(competition_id, registration_id)
+    return jsonify({'entry': competition_data}), 200
 
 
 @app.route("/competition/<competition_id>/ranking", methods=["GET"])

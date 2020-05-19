@@ -1,8 +1,8 @@
 import sqlalchemy as db
 
 modalities = {
-    "1": "Modalidade 1",
-    "2": "Modalidade 2"
+    "1": "100m rasos",
+    "2": "Lançamento de Dardo"
 }
 
 engine = db.create_engine('sqlite:///:memory:?check_same_thread=False')

@@ -21,6 +21,22 @@ class Registration:
         connection.execute(query)
         return public_id
 
+    def get_registrations(self, competition_id: str, registration_id: str) -> dict:
+        query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition_id and registrations_table.columns.registration_id == registration_id)
+        results = connection.execute(query)
+        return self.__to_json(results)
+
+    def list_competition_participants(self, competition) -> dict:
+        query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition)
+        results = connection.execute(query)
+        return self.__to_json(results)
+
+    def count_tries_in_competition(self, competition_id: str, athtlete: str) -> dict:
+        query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition_id and registrations_table.columns.athtlete == athtlete)
+        results = connection.execute(query)
+        tries = self.__to_json(results)
+        return len(tries)
+
     def list_registers_by_competition_id(self, competition_id: str) -> dict:
         query = db.select([registrations_table]).where(registrations_table.columns.competition_id == competition_id)
         results = connection.execute(query)
