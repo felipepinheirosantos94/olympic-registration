@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 from Competition import Competition
 from Registration import Registration
-from schema.payloads import register_competition_payload, update_competition_payload
+from schema.payloads import register_competition_payload, update_competition_payload, register_participant
 from config import modalities
 import json
 from jsonschema import validate
@@ -78,8 +78,14 @@ def list_competitions():
 
 @app.route("/competition/<competition_id>/register", methods=["POST"])
 def register_for_competition(competition_id):
-
     payload = request.get_json()
+
+    # Validate payload
+    try:
+        validate(instance=payload, schema=register_participant)
+    except:
+        return jsonify({'Error': "Invalid payload"}), 400
+
     competition = Competition()
 
     competition_data = competition.get_competition_by_public_id(
@@ -101,7 +107,7 @@ def register_for_competition(competition_id):
     registration = Registration()
 
     # Check participant tries for this subscription
-    tries = registration.count_tries_in_competition(competition_id, payload['atleta'])
+    tries = registration.count_tries_in_competition(competition_id, payload['athlete'])
 
     if competition_data[0]['modality'] == modalities["2"] and tries > tries_limit - 1:
         # if tries limit exceeded do not register a new try on this competition
@@ -109,7 +115,7 @@ def register_for_competition(competition_id):
 
     registration_data = registration.register_for_competition(
         competition_id=competition_id,
-        athlete=payload["atleta"],
+        athlete=payload["athlete"],
         value=payload["value"],
         unit=unit,
     )

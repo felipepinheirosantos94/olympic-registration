@@ -5,6 +5,7 @@ from Competition import Competition
 import random
 from config import modalities
 
+
 class Test(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
@@ -126,8 +127,7 @@ class Test(unittest.TestCase):
                 # Try to register 4 tries for each participant
                 for i in range(4):
                     payload = {
-                      "competicao": self.competition_id,
-                      "atleta": f"Competidor {j + 1}",
+                      "athlete": f"Competidor {j + 1}",
                       "value": f"{random.uniform(0.1, 99.9)}"
                     }
 
