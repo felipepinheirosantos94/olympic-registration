@@ -14,7 +14,7 @@ class Registration:
         query = db.insert(registrations_table).values(
             public_id=public_id,
             athlete=athlete,
-            value=float(value),
+            value=value,
             unit=unit,
             competition_id=competition_id
         )

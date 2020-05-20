@@ -58,7 +58,7 @@ Register a competition. Example: Final 100m rasos sub-20
 
 {
     "name": "Final sub-20",
-    "modality": "2",
+    "modality": 2,
     "event_date": "19/05/2020"
 }
 ```
@@ -76,7 +76,7 @@ Update a competition. Thought this endpoint the user can close a competition.
 
 {
     "name": "Final sub-20",
-    "modality": "2",
+    "modality": 2,
     "event_date": "19/05/2020",
     "status": "Closed"
 }
@@ -90,7 +90,7 @@ For "Lançamento de Dardo" (modality 2), it's allowed only 3 tries per person.
 
 {
     "athlete": "Felipe Pinheiro",
-    "value": "30.3"   
+    "value": 30.3  
 }
 
 # The messure unit is defined by the competition modality

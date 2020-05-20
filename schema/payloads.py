@@ -31,7 +31,8 @@ register_participant = {
     "properties": {
         "athlete": {"type" : "string"},
         "value": {
-            "type": "string"
+            "type": "number",
+            "minimum": 0
         },
     },
 }

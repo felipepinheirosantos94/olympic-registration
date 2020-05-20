@@ -128,7 +128,7 @@ class Test(unittest.TestCase):
                 for i in range(4):
                     payload = {
                       "athlete": f"Competidor {j + 1}",
-                      "value": f"{random.uniform(0.1, 99.9)}"
+                      "value": random.uniform(0.1, 99.9)
                     }
 
                     response = self.__perform_request(
