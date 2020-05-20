@@ -5,6 +5,7 @@ API to display register competitions, and return the winner based on the best tr
   - Python3
   - Flask
   - SQLAlchemy (Storing database in memory)
+  - JSONSchema
 
 # Instalation
 Clone repository
