@@ -4,8 +4,10 @@ app = Flask(__name__)
 
 from Competition import Competition
 from Registration import Registration
+from schema.payloads import register_competition_payload, update_competition_payload
 from config import modalities
-
+import json
+from jsonschema import validate
 
 @app.route("/health_check", methods=["GET"])
 def health_check():
@@ -15,6 +17,12 @@ def health_check():
 @app.route("/competition", methods=["POST"])
 def register_competition():
     payload = request.get_json()
+
+    #Validate payload
+    try:
+        validate(instance=payload, schema=register_competition_payload)
+    except:
+        return jsonify({'Error': "Invalid payload"}), 400
 
     competition = Competition()
 
@@ -30,8 +38,11 @@ def register_competition():
 def update_competition(public_id):
     payload = request.get_json()
 
-    if payload["status"] not in ["Open", "Running", "Closed"]:
-        return jsonify({'Error': "Status must be 'Open', 'Running' or 'Closed'"}), 400
+    #Validate payload
+    try:
+        validate(instance=payload, schema=update_competition_payload)
+    except:
+        return jsonify({'Error': "Invalid payload"}), 400
 
     competition = Competition()
     competition.get_competition_by_public_id(
@@ -76,6 +87,9 @@ def register_for_competition(competition_id):
     )
 
     if len(competition_data) == 1:
+        if competition_data[0]['status'] != "Open":
+            return jsonify({'Error': "This competition is closed for registrations"}), 400
+
         if competition_data[0]['modality'] == modalities["1"]:
             unit = "s"
         else:
